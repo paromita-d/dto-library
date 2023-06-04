@@ -1,0 +1,8 @@
+server:
+  port : 8083
+  servlet.context-path : /shop
+
+inventory:
+  endpoint:
+    purchase : http://localhost:8081/inventory/purchase/
+    return: http://localhost:8081/inventory/return/
