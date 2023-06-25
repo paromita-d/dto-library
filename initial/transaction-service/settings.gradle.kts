@@ -4,4 +4,4 @@
  * This project uses @Incubating APIs which are subject to change.
  */
 
-rootProject.name = "purchase-service-initial"
+rootProject.name = "transaction-service-initial"

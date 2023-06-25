@@ -18,7 +18,7 @@ repositories {
 
 group = "org.paromita"
 version = "1.0-SNAPSHOT"
-description = "purchase-service-initial"
+description = "transaction-service-initial"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 publishing {
