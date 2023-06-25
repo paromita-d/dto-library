@@ -1,0 +1,11 @@
+server:
+  port : 8083
+  servlet.context-path : /shop
+
+inventory:
+  eligibility:
+    purchase: http://localhost:8081/inventory/eligibility/purchase/
+    refund: http://localhost:8081/inventory/eligibility/refund/
+transaction:
+  purchase : http://localhost:8082/transaction/purchase/
+  refund: http://localhost:8082/transaction/refund/
