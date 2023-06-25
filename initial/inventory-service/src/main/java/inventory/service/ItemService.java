@@ -1,22 +1,33 @@
 package inventory.service;
 
-import inventory.dto.Stock;
-import inventory.repository.StockRepository;
+import inventory.dto.Item;
+import inventory.repository.ItemRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 @Service
 @Log4j2
-public class StockService {
+public class ItemService {
 
-    private StockRepository stockRepository;
+    private final ItemRepository itemRepository;
 
-    public StockService(StockRepository stockRepository) {
-        this.stockRepository = stockRepository;
+    public ItemService(ItemRepository itemRepository) {
+        this.itemRepository = itemRepository;
     }
 
-    public Stock purchaseItem(int id, int qty) throws Exception {
-        Stock s = stockRepository.getStockById(id);
+    public boolean canPurchase(int id, int qty) {
+        Item s = itemRepository.getItemById(id);
+        if(s == null)
+            return false;
+        return qty <= s.getQuantity();
+    }
+
+    public boolean canReturn(int id) {
+        return itemRepository.getItemById(id) != null;
+    }
+
+    public Item purchaseItem(int id, int qty) throws Exception {
+        Item s = itemRepository.getItemById(id);
         if(qty <= 0) {
             log.warn("invalid purchase quantity");
             throw new Exception("invalid purchase quantity");
@@ -26,16 +37,16 @@ public class StockService {
             throw new Exception("not enough in stock");
         }
         s.setQuantity(s.getQuantity() - qty);
-        stockRepository.update(id, s);
+        itemRepository.update(id, s);
 
         log.info("purchase successful for id: " + id + " qty: " + qty);
         log.info("new inventory count for id: " + id + " qty: " + s.getQuantity());
 
-        return new Stock(s.getId(), s.getName(), qty, s.getPrice(), s.getDesc());
+        return new Item(s.getId(), s.getName(), qty, s.getPrice(), s.getDesc());
     }
 
-    public Stock returnItem(int id, int qty) throws Exception {
-        Stock s = stockRepository.getStockById(id);
+    public Item returnItem(int id, int qty) throws Exception {
+        Item s = itemRepository.getItemById(id);
         if(s == null) {
             throw new Exception("we dont sell this item");
         }
@@ -43,11 +54,11 @@ public class StockService {
             throw new Exception("invalid return quantity");
         }
         s.setQuantity(s.getQuantity() + qty);
-        stockRepository.update(id, s);
+        itemRepository.update(id, s);
 
         log.info("return successful for id: " + id + " qty: " + qty);
         log.info("new inventory count for id: " + id + " qty: " + s.getQuantity());
 
-        return new Stock(s.getId(), s.getName(), qty, s.getPrice(), s.getDesc());
+        return new Item(s.getId(), s.getName(), qty, s.getPrice(), s.getDesc());
     }
 }

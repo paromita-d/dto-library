@@ -1,8 +1,9 @@
 package inventory.controller;
 
-import inventory.repository.StockRepository;
-import inventory.dto.Stock;
-import inventory.service.StockService;
+import inventory.dto.TxnType;
+import inventory.repository.ItemRepository;
+import inventory.dto.Item;
+import inventory.service.ItemService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,39 +15,41 @@ import java.util.List;
 @RequestMapping(path = "/")
 public class InventoryController {
 
-    private StockRepository stockRepository;
-    private StockService stockService;
+    private final ItemRepository itemRepository;
+    private final ItemService itemService;
 
-    public InventoryController(StockRepository stockRepository, StockService stockService) {
-        this.stockRepository = stockRepository;
-        this.stockService = stockService;
+    public InventoryController(ItemRepository itemRepository, ItemService itemService) {
+        this.itemRepository = itemRepository;
+        this.itemService = itemService;
     }
 
     @GetMapping(path="/all", produces = "application/json")
-    public List<Stock> getAllStock() {
-        return stockRepository.getAllStock();
+    public List<Item> getAllItems() {
+        return itemRepository.getAllItems();
     }
 
     @GetMapping(path="/details/{id}", produces = "application/json")
-    public Stock getStock(@PathVariable int id) {
-        return stockRepository.getStockById(id);
+    public Item getItem(@PathVariable int id) {
+        return itemRepository.getItemById(id);
     }
 
-    @GetMapping(path="/purchase/{id}/{count}", produces = "application/json")
-    public Stock purchaseItem(@PathVariable int id, @PathVariable int count) {
-        try {
-            return stockService.purchaseItem(id, count);
-        } catch (Exception e) {
-            return Stock.builder().desc(e.getMessage()).build();
-        }
+    @GetMapping(path="/eligibility/{txnType}/{id}/{count}", produces = "application/json")
+    public Boolean canTransactItem(@PathVariable TxnType txnType, @PathVariable int id, @PathVariable int count) {
+        if(txnType == TxnType.purchase)
+            return itemService.canPurchase(id, count);
+        else
+            return itemService.canReturn(id);
     }
 
-    @GetMapping(path="/return/{id}/{count}", produces = "application/json")
-    public Stock returnItem(@PathVariable int id, @PathVariable int count) {
+    @GetMapping(path="/{txnType}/{id}/{count}", produces = "application/json")
+    public Item transactItem(@PathVariable TxnType txnType, @PathVariable int id, @PathVariable int count) {
         try {
-            return stockService.returnItem(id, count);
+            if(txnType == TxnType.purchase)
+                return itemService.purchaseItem(id, count);
+            else
+                return itemService.returnItem(id, count);
         } catch (Exception e) {
-            return Stock.builder().desc(e.getMessage()).build();
+            return Item.builder().desc(e.getMessage()).build();
         }
     }
 }
