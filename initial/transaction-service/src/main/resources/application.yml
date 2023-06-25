@@ -1,0 +1,7 @@
+server:
+  port : 8082
+  servlet.context-path : /transaction
+
+inventory:
+  purchase : http://localhost:8081/inventory/purchase/
+  refund: http://localhost:8081/inventory/refund/

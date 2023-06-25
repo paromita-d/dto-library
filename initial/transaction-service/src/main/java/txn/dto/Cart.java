@@ -1,11 +1,12 @@
-package shop.dto;
+package txn.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -16,8 +17,8 @@ public class Cart {
     private Date txnDate;
     private TxnType txnType;
     private Integer customerId;
-    private List<Item> items = new ArrayList<>();
-    private Double totalCost = 0D;
+    private List<Item> items;
+    private Double totalCost;
     private String desc;
 
     public List<Item> addItem(Item item) {

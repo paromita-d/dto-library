@@ -3,6 +3,9 @@ server:
   servlet.context-path : /shop
 
 inventory:
-  endpoint:
-    purchase : http://localhost:8081/inventory/purchase/
-    return: http://localhost:8081/inventory/return/
+  eligibility:
+    purchase: http://localhost:8081/inventory/eligibility/purchase/
+    refund: http://localhost:8081/inventory/eligibility/refund/
+transaction:
+  purchase : http://localhost:8082/transaction/purchase/
+  refund: http://localhost:8082/transaction/refund/

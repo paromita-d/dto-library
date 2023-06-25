@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import shop.dto.Cart;
-import shop.dto.Stock;
+import shop.dto.TxnType;
 
 import java.util.Map;
 
@@ -13,42 +13,40 @@ import java.util.Map;
 @Log4j2
 public class ShopService {
 
-    @Value("${inventory.endpoint.purchase}")
-    private String purchaseAPI;
+    @Value("${inventory.eligibility.purchase}")
+    private String canPurchaseAPI;
 
-    @Value("${inventory.endpoint.return}")
-    private String returnAPI;
-    public Cart purchaseItems(Map<String, String> items) {
-        Cart cart = new Cart();
-        items.forEach((itemId,qty) -> {
-            try {
-                String url = purchaseAPI + itemId + "/" + qty;
-                RestTemplate restTemplate = new RestTemplate();
-                Stock stock = restTemplate.getForObject(url, Stock.class);
-                log.info("purchase allowed for: " + stock);
-                cart.addItem(stock);
-            } catch (Exception e) {
-                log.error("exception calling inventory service", e);
-            }
-        });
-        log.info("final purchase cart: " + cart);
-        return cart;
+    @Value("${inventory.eligibility.refund}")
+    private String canRefundAPI;
+
+    @Value("${transaction.purchase}")
+    private String txnPurchaseAPI;
+
+    @Value("${transaction.refund}")
+    private String txnRefundAPI;
+
+    public boolean canTransactItems(TxnType txnType, Map<String, String> items) {
+        for(Map.Entry<String, String> entry : items.entrySet()) {
+            String itemId = entry.getKey();
+            String qty = entry.getValue();
+            String url = (txnType == TxnType.purchase ? canPurchaseAPI : canRefundAPI) + itemId + "/" + qty;
+            RestTemplate restTemplate = new RestTemplate();
+            Boolean allowed = restTemplate.getForObject(url, Boolean.class);
+            log.info(txnType + " allowed for " + itemId + ":" + allowed);
+            if(allowed != null && !allowed)
+                return false;
+        }
+        return true;
     }
 
-    public Cart returnItems(Map<Integer, Integer> items) {
-        Cart cart = new Cart();
-        items.forEach((itemId,qty) -> {
-            try {
-                String url = returnAPI + itemId + "/" + qty;
-                RestTemplate restTemplate = new RestTemplate();
-                Stock stock = restTemplate.getForObject(url, Stock.class);
-                log.info("return allowed for: " + stock);
-                cart.addItem(stock);
-            } catch (Exception e) {
-                log.error("exception calling inventory service", e);
-            }
-        });
-        log.info("final return cart: " + cart);
+    public Cart transactItems(TxnType txnType, Map<String, String> items, int txnId) {
+        StringBuilder strBld = new StringBuilder();
+        items.forEach((id, qty) -> strBld.append(id).append("=").append(qty).append("&"));
+
+        String url = (txnType == TxnType.purchase ? txnPurchaseAPI : txnRefundAPI) + txnId + "?" + strBld;
+        RestTemplate restTemplate = new RestTemplate();
+        Cart cart = restTemplate.getForObject(url, Cart.class);
+        log.info("Cart from transaction service: " + cart);
         return cart;
     }
 }
